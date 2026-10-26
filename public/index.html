@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Interview Coach</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Manrope:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --void:#060816;
+  --ink:#eef1ff;
+  --mute:#9ca3c9;
+  --ice:#8fd3ff;
+  --orchid:#b79cff;
+  --ember:#ffb38a;
+  --glass:rgba(16,20,48,.62);
+  --line:rgba(190,200,255,.18);
+  color-scheme:dark;
+}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%}
+body{background:var(--void);color:var(--ink);font:400 16px/1.55 Manrope,system-ui,sans-serif;overflow-x:hidden}
+#bg{position:fixed;inset:0;width:100%;height:100%;z-index:0}
+.shell{position:relative;z-index:1;min-height:100%;display:flex;flex-direction:column;padding:22px clamp(16px,4vw,48px)}
+header{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.brand{font:700 22px Fraunces,Georgia,serif;letter-spacing:.2px}
+.brand i{font-style:normal;color:var(--ice)}
+.steps{display:flex;gap:8px;align-items:center;color:var(--mute);font-size:14px}
+.steps b{font-weight:500;color:var(--ink)}
+.bar{width:90px;height:4px;border-radius:4px;background:var(--line);overflow:hidden}
+.bar span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--ice),var(--orchid));transition:width .5s}
+
+main{flex:1;display:flex;align-items:center;justify-content:center;padding:28px 0;width:100%}
+.screen{
+  display:none;
+  width:min(740px,100%);
+  margin:0 auto;
+  padding:clamp(22px,4vw,40px);
+  background:var(--glass);
+  border:1px solid var(--line);
+  border-radius:26px;
+  backdrop-filter:blur(20px) saturate(1.3);
+  -webkit-backdrop-filter:blur(20px) saturate(1.3);
+  box-shadow:0 30px 80px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.08);
+}
+.screen.on{display:block}
+
+h1,h2{font:700 clamp(28px,4.4vw,42px)/1.12 Fraunces,Georgia,serif;margin-bottom:10px}
+h2{font-size:clamp(24px,3.6vw,32px)}
+p.lead{color:var(--mute);margin-bottom:24px;max-width:58ch}
+.drop{display:block;border:1.5px dashed rgba(143,211,255,.45);border-radius:18px;padding:34px 20px;text-align:center;cursor:pointer;transition:background .2s,border-color .2s}
+.drop:hover,.drop.over,.drop:focus-within{background:rgba(143,211,255,.08);border-color:var(--ice)}
+.drop input{position:absolute;opacity:0;width:1px;height:1px}
+.drop strong{display:block;font-weight:700}
+.drop small{color:var(--mute)}
+.file{margin-top:14px;color:var(--ice);font-weight:500;min-height:24px}
+.err{color:var(--ember);min-height:22px;margin-top:8px;font-size:14px}
+.btn{
+  appearance:none;
+  border:0;
+  cursor:pointer;
+  font:700 16px Manrope,sans-serif;
+  color:#07102a;
+  background:linear-gradient(120deg,var(--ice),var(--orchid));
+  padding:13px 26px;
+  border-radius:14px;
+  transition:transform .15s,filter .15s,opacity .2s;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+}
+.btn:hover:not(:disabled){transform:translateY(-2px);filter:brightness(1.08)}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn:focus-visible,.dom:focus-visible,textarea:focus-visible,input:focus-visible{outline:2px solid var(--ice);outline-offset:3px}
+.row{display:flex;gap:12px;flex-wrap:wrap;margin-top:22px}
+
+/* Domain Section */
+.opt{margin-top:20px}
+.row-opts{display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start}
+.row-opts .opt{flex:1 1 220px;margin-top:20px}
+.opt-label{display:block;font-weight:700;margin-bottom:8px;color:var(--ink)}
+.input-wrap{position:relative}
+.input-wrap input[type=text]{
+  width:100%;
+  background:rgba(5,8,24,.55);
+  color:var(--ink);
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:13px 16px;
+  font:inherit;
+  font-size:15px;
+  transition:border-color .2s,box-shadow .2s,background .2s;
+}
+.input-wrap input[type=text]:focus{
+  outline:none;
+  border-color:var(--ice);
+  box-shadow:0 0 0 3px rgba(143,211,255,.18);
+}
+
+.doms{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px}
+.dom{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  text-align:left;
+  background:rgba(255,255,255,.04);
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:9px 12px;
+  color:var(--ink);
+  cursor:pointer;
+  transition:border-color .2s,background .2s,transform .15s;
+}
+.dom:hover{transform:translateY(-1px);border-color:var(--orchid)}
+.dom[aria-pressed=true]{border-color:var(--ice);background:rgba(143,211,255,.12)}
+.dom-info{flex:1;min-width:0}
+.dom b{display:block;font:700 14px Fraunces,Georgia,serif;margin-bottom:1px;line-height:1.2}
+.dom span{display:block;color:var(--mute);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.plus-btn{
+  appearance:none;
+  background:rgba(255,255,255,.07);
+  border:1px solid var(--line);
+  color:var(--ice);
+  width:24px;
+  height:24px;
+  border-radius:50%;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  flex-shrink:0;
+  transition:transform .2s,background .2s,color .2s,border-color .2s;
+}
+.dom:hover .plus-btn{background:var(--ice);color:#07102a;transform:scale(1.08)}
+.dom[aria-pressed=true] .plus-btn{
+  background:linear-gradient(120deg,var(--ice),var(--orchid));
+  color:#07102a;
+  border-color:transparent;
+  transform:rotate(45deg);
+}
+
+.seg{display:flex;gap:8px;flex-wrap:wrap}
+.chip{
+  appearance:none;
+  cursor:pointer;
+  font:500 15px Manrope,sans-serif;
+  color:var(--ink);
+  background:rgba(255,255,255,.04);
+  border:1px solid var(--line);
+  border-radius:999px;
+  padding:8px 18px;
+  transition:border-color .2s,background .2s;
+}
+.chip:hover{border-color:var(--orchid)}
+.chip[aria-pressed=true]{border-color:var(--ice);background:rgba(143,211,255,.14)}
+.chip:focus-visible{outline:2px solid var(--ice);outline-offset:3px}
+.hint{display:block;color:var(--mute);font-size:14px;margin-top:8px}
+
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:16px;color:var(--mute);font-size:14px}
+.timer{position:relative;width:64px;height:64px;flex:none}
+.timer svg{transform:rotate(-90deg)}
+.timer circle{fill:none;stroke-width:5}
+.timer .t{stroke:var(--line)}
+.timer .p{stroke:var(--ice);stroke-linecap:round;stroke-dasharray:176;transition:stroke .3s}
+.timer.low .p{stroke:var(--ember)}
+.timer em{position:absolute;inset:0;display:grid;place-items:center;font:700 16px Manrope,sans-serif;font-style:normal;font-variant-numeric:tabular-nums}
+.q{font:500 clamp(20px,3vw,26px)/1.3 Fraunces,Georgia,serif;margin-bottom:18px}
+textarea{
+  width:100%;
+  min-height:150px;
+  resize:vertical;
+  background:rgba(5,8,24,.55);
+  color:var(--ink);
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:14px;
+  font:inherit;
+}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin:18px 0}
+.stat{border:1px solid var(--line);border-radius:14px;padding:14px;background:rgba(255,255,255,.04)}
+.stat b{display:block;font:700 28px Fraunces,Georgia,serif}
+.stat span{color:var(--mute);font-size:14px}
+.log{max-height:360px;overflow-y:auto;border-top:1px solid var(--line);padding-right:4px}
+.log::-webkit-scrollbar{width:6px}
+.log::-webkit-scrollbar-thumb{background:var(--line);border-radius:6px}
+.note{margin-top:16px;color:var(--mute);font-size:14px}
+
+/* Feedback card styling */
+.fb-card{padding:18px 0;border-bottom:1px solid var(--line)}
+.fb-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:6px}
+.fb-q{font-weight:700;color:var(--ink);font-size:16px;line-height:1.4}
+.fb-score{background:linear-gradient(120deg,var(--ice),var(--orchid));color:#07102a;font-weight:700;padding:4px 12px;border-radius:999px;font-size:13px;white-space:nowrap;flex-shrink:0}
+.fb-score.zero{background:rgba(255,255,255,.12);color:var(--mute)}
+.fb-meta{color:var(--mute);font-size:13px;margin-bottom:10px}
+.fb-ans{background:rgba(0,0,0,.35);border-left:3px solid var(--orchid);padding:10px 14px;border-radius:0 10px 10px 0;margin:8px 0 12px;font-size:14px;color:var(--ink);font-style:italic}
+.fb-sec{margin:10px 0 6px;font-size:14px;line-height:1.55}
+.fb-sec strong{color:var(--ice);display:block;font-size:12px;text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px}
+.fb-sample strong{color:var(--ember)}
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(7,16,42,.3);border-top-color:#07102a;border-radius:50%;animation:spin .75s linear infinite;margin-right:8px}
+.spinner-light{display:inline-block;width:18px;height:18px;border:2px solid rgba(255,255,255,.2);border-top-color:var(--ice);border-radius:50%;animation:spin .75s linear infinite;margin-right:8px;vertical-align:middle}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+@media(max-width:520px){.steps .bar{display:none}}
+</style>
+</head>
+<body>
+<canvas id="bg" aria-hidden="true"></canvas>
+<div class="shell">
+  <header>
+    <div class="brand">Interview<i>Coach</i></div>
+    <div class="steps"><b id="stepLabel">Resume</b><div class="bar"><span id="bar"></span></div></div>
+  </header>
+  <main>
+    <section class="screen on" id="s-upload" aria-labelledby="h-upload">
+      <h1 id="h-upload">Practice the interview before it counts.</h1>
+      <p class="lead">Upload your resume and we will ask questions that fit your projects and your field.</p>
+      <label class="drop" id="drop">
+        <input type="file" id="file" accept="application/pdf">
+        <strong>Drop your resume here or click to browse</strong>
+        <small>PDF only, up to 5 MB</small>
+      </label>
+      <div class="file" id="fileName"></div>
+      <div class="err" id="err" role="alert"></div>
+      <div class="row"><button class="btn" id="toDomain" disabled>Choose your domain</button></div>
+    </section>
+
+    <section class="screen" id="s-domain" aria-labelledby="h-domain">
+      <h2 id="h-domain">What should we focus on?</h2>
+      <p class="lead">Specify your target domain or role, choose a difficulty level and how many questions you want.</p>
+      
+      <div class="opt">
+        <label for="customDomain" class="opt-label" id="roleLabel">Specify your target domain or role</label>
+        <div class="input-wrap">
+          <input type="text" id="customDomain" placeholder="e.g. Full Stack React Developer, Cloud DevOps, NLP Engineer..." aria-labelledby="roleLabel" autocomplete="off">
+        </div>
+        <small class="hint">Type your exact specialization above, or click + on an additional domain below.</small>
+      </div>
+
+      <div class="opt">
+        <span class="opt-label">Additional domains</span>
+        <div class="doms" id="doms"></div>
+      </div>
+
+      <div class="opt"><span id="lvLabel" class="opt-label">Difficulty level</span><div class="seg" id="lvSeg" role="group" aria-labelledby="lvLabel"></div><small class="hint" id="lvHint"></small></div>
+      <div class="row-opts">
+        <div class="opt">
+          <span id="cnLabel" class="opt-label">Number of questions</span>
+          <div class="seg" id="cnSeg" role="group" aria-labelledby="cnLabel"></div>
+        </div>
+        <div class="opt">
+          <span id="tmLabel" class="opt-label">Time per question</span>
+          <div class="seg" id="tmSeg" role="group" aria-labelledby="tmLabel"></div>
+        </div>
+      </div>
+      <div class="err" id="domErr" role="alert"></div>
+      <div class="row">
+        <button class="btn ghost" id="backUpload">Back</button>
+        <button class="btn" id="start" disabled>Start interview</button>
+      </div>
+    </section>
+
+    <section class="screen" id="s-interview" aria-labelledby="qtext">
+      <div class="qhead">
+        <span id="qcount">Question 1 of 4</span>
+        <div class="timer" id="timer"><svg width="64" height="64" viewBox="0 0 64 64"><circle class="t" cx="32" cy="32" r="28"/><circle class="p" id="ring" cx="32" cy="32" r="28"/></svg><em id="clock">90</em></div>
+      </div>
+      <p class="q" id="qtext"></p>
+      <textarea id="answer" placeholder="Type your answer as you would say it out loud." aria-label="Your answer"></textarea>
+      <div class="row">
+        <button class="btn ghost" id="skip">Skip question</button>
+        <button class="btn" id="next">Save and continue</button>
+      </div>
+    </section>
+
+    <section class="screen" id="s-summary" aria-labelledby="h-sum">
+      <h2 id="h-sum">Session complete</h2>
+      <div class="stats" id="stats"></div>
+      <div class="log" id="log"></div>
+      <p class="note">AI feedback generated with Antigravity AI Coach.</p>
+      <div class="row"><button class="btn" id="again">Start a new session</button></div>
+    </section>
+  </main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/* ---------- 3D Solar System Background ---------- */
+(function(){
+  const canvas=document.getElementById("bg");
+  const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let R;
+  try{R=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true})}catch(e){return}
+  R.setPixelRatio(Math.min(devicePixelRatio,2));
+  const S=new THREE.Scene();
+  S.fog=new THREE.FogExp2(0x060816,.016);
+  const cam=new THREE.PerspectiveCamera(55,1,.1,250);
+  cam.position.set(0,8,25);
+
+  const systemGrp=new THREE.Group();
+  systemGrp.rotation.x=0.48; // Perspective tilt of orbital plane
+  systemGrp.rotation.z=-0.12;
+  S.add(systemGrp);
+
+  // The Sun
+  const sunGeom=new THREE.SphereGeometry(1.65,28,28);
+  const sunMat=new THREE.MeshBasicMaterial({color:0xffb347});
+  const sunMesh=new THREE.Mesh(sunGeom,sunMat);
+  systemGrp.add(sunMesh);
+
+  // Solar Corona / Atmosphere Glow
+  const coronaGeom=new THREE.SphereGeometry(2.0,20,20);
+  const coronaMat=new THREE.MeshBasicMaterial({color:0xff6b35,wireframe:true,transparent:true,opacity:0.35});
+  const coronaMesh=new THREE.Mesh(coronaGeom,coronaMat);
+  systemGrp.add(coronaMesh);
+
+  // Planets data configuration
+  const PLANET_DEFS=[
+    {name:"Mercury", r:0.22, dist:3.4,  speed:2.2, color:0xbaa898},
+    {name:"Venus",   r:0.36, dist:5.0,  speed:1.6, color:0xe8c783},
+    {name:"Earth",   r:0.42, dist:7.0,  speed:1.2, color:0x4fa8ff, hasMoon:true},
+    {name:"Mars",    r:0.30, dist:9.0,  speed:0.95,color:0xff6347},
+    {name:"Jupiter", r:0.88, dist:11.8, speed:0.58,color:0xe3b078},
+    {name:"Saturn",  r:0.72, dist:15.0, speed:0.40,color:0xf3d69b, hasRing:true},
+    {name:"Uranus",  r:0.48, dist:18.2, speed:0.27,color:0x70e2d6},
+    {name:"Neptune", r:0.46, dist:21.2, speed:0.19,color:0x4361ee}
+  ];
+
+  // Orbit line generator
+  function createOrbitLine(dist){
+    const pts=[];
+    const segs=100;
+    for(let i=0;i<=segs;i++){
+      const theta=(i/segs)*Math.PI*2;
+      pts.push(new THREE.Vector3(Math.cos(theta)*dist,0,Math.sin(theta)*dist));
+    }
+    const geom=new THREE.BufferGeometry().setFromPoints(pts);
+    const mat=new THREE.LineBasicMaterial({color:0x8fd3ff,transparent:true,opacity:0.16});
+    return new THREE.Line(geom,mat);
+  }
+
+  // Create planets, moons & rings
+  const planets=[];
+  PLANET_DEFS.forEach(def=>{
+    // Add orbit path
+    systemGrp.add(createOrbitLine(def.dist));
+
+    // Planet pivot group
+    const pivot=new THREE.Group();
+    systemGrp.add(pivot);
+
+    // Planet body
+    const geom=new THREE.SphereGeometry(def.r,20,20);
+    const mat=new THREE.MeshBasicMaterial({color:def.color});
+    const mesh=new THREE.Mesh(geom,mat);
+    mesh.position.x=def.dist;
+    pivot.add(mesh);
+
+    // Initial random angle
+    pivot.rotation.y=Math.random()*Math.PI*2;
+
+    const planetItem={pivot,mesh,speed:def.speed,r:def.r,dist:def.dist};
+
+    // Earth's Moon
+    if(def.hasMoon){
+      const moonPivot=new THREE.Group();
+      mesh.add(moonPivot);
+      const moonGeom=new THREE.SphereGeometry(0.12,12,12);
+      const moonMat=new THREE.MeshBasicMaterial({color:0xd9e2ec});
+      const moonMesh=new THREE.Mesh(moonGeom,moonMat);
+      moonMesh.position.x=0.78;
+      moonPivot.add(moonMesh);
+      planetItem.moonPivot=moonPivot;
+    }
+
+    // Saturn's Rings
+    if(def.hasRing){
+      const ringGeom=new THREE.RingGeometry(0.95,1.75,36);
+      const ringMat=new THREE.MeshBasicMaterial({color:0xd8ba85,side:THREE.DoubleSide,transparent:true,opacity:0.65});
+      const ringMesh=new THREE.Mesh(ringGeom,ringMat);
+      ringMesh.rotation.x=Math.PI/2+0.42;
+      mesh.add(ringMesh);
+    }
+
+    planets.push(planetItem);
+  });
+
+  // Distant twinkling starfield
+  const N=2500,p=new Float32Array(N*3);
+  for(let i=0;i<N;i++){
+    const r=20+Math.random()*70,t=Math.random()*6.2832,f=Math.acos(2*Math.random()-1);
+    p[i*3]=r*Math.sin(f)*Math.cos(t);p[i*3+1]=r*Math.sin(f)*Math.sin(t);p[i*3+2]=r*Math.cos(f);
+  }
+  const starGeom=new THREE.BufferGeometry();
+  starGeom.setAttribute("position",new THREE.BufferAttribute(p,3));
+  const stars=new THREE.Points(starGeom,new THREE.PointsMaterial({size:.10,color:0xc8d4ff,transparent:true,opacity:.85}));
+  S.add(stars);
+
+  let mx=0,my=0,boost=0,t=0;
+  const coronaPalettes=[0xff6b35,0xb79cff,0x7ee8c7,0xffb38a];
+  const activeColor=new THREE.Color(0xff6b35);
+  const targetColor=new THREE.Color(0xff6b35);
+
+  window.setScene=function(i){
+    targetColor.setHex(coronaPalettes[i%coronaPalettes.length]);
+    boost=1;
+  };
+
+  addEventListener("pointermove",e=>{
+    mx=e.clientX/innerWidth-.5;
+    my=e.clientY/innerHeight-.5;
+  });
+
+  function size(){
+    const w=innerWidth,h=innerHeight;
+    R.setSize(w,h,false);
+    cam.aspect=w/h;
+    cam.updateProjectionMatrix();
+    systemGrp.position.x=0;
+    systemGrp.scale.setScalar(w<650?0.68:(w<950?0.85:1.0));
+  }
+  addEventListener("resize",size);size();
+
+  function frame(){
+    t+=reduce?0:.006;
+    boost*=.95;
+
+    // Pulse Sun & rotate corona
+    sunMesh.rotation.y+=0.004;
+    coronaMesh.rotation.y-=0.008;
+    coronaMesh.rotation.z+=0.003;
+    activeColor.lerp(targetColor,0.04);
+    coronaMesh.material.color.copy(activeColor);
+
+    // Orbit all planets
+    planets.forEach(p=>{
+      const effectiveSpeed=reduce?0:(p.speed*0.008*(1+boost*0.8));
+      p.pivot.rotation.y+=effectiveSpeed;
+      p.mesh.rotation.y+=0.02;
+      if(p.moonPivot)p.moonPivot.rotation.y+=effectiveSpeed*3.5;
+    });
+
+    // Starfield drift
+    stars.rotation.y=t*0.04;
+    stars.rotation.x=t*0.015;
+
+    // Smooth camera tilt & parallax
+    cam.position.x+=(mx*5-cam.position.x)*0.04;
+    cam.position.y+=(-my*3.5+8-cam.position.y)*0.04;
+    cam.lookAt(0,0,0);
+
+    R.render(S,cam);
+    if(!reduce||boost>.01)requestAnimationFrame(frame);
+  }
+  frame();
+  if(reduce)setInterval(()=>{R.render(S,cam)},400);
+})();
+
+/* ---------- App State & Controls ---------- */
+try{localStorage.removeItem("interview_coach_theme")}catch(e){}
+document.body.classList.remove("light");
+const DOMAINS={
+  "Web development":{d:"Frontend, backend, APIs"},
+  "Data and AI":{d:"ML basics, data handling, models"},
+  "Embedded and IoT":{d:"Microcontrollers, sensors, protocols"},
+  "VLSI and electronics":{d:"Circuits, CMOS, simulation"},
+  "HR and behavioral":{d:"Introductions, teamwork, goals"}
+};
+const CIRC=176;
+const $=id=>document.getElementById(id);
+const screens=["upload","domain","interview","summary"],labels=["Resume","Domain","Interview","Summary"];
+let resume=null,domain="",level="Intermediate",count=5,questionTime=90,qs=[],idx=0,left=90,tick=null,results=[];
+
+function show(n){
+  screens.forEach((s,i)=>$("s-"+s).classList.toggle("on",i===n));
+  $("stepLabel").textContent=labels[n];
+  $("bar").style.width=((n+1)/screens.length*100)+"%";
+  if(window.setScene)window.setScene(n);
+}
+show(0);
+
+/* Resume */
+function takeFile(f){
+  $("err").textContent="";
+  if(!f)return;
+  if(f.type!=="application/pdf"&&!/\.pdf$/i.test(f.name)){$("err").textContent="That file is not a PDF. Export your resume as a PDF and try again.";return}
+  if(f.size>5*1024*1024){$("err").textContent="That PDF is over 5 MB. Compress it and try again.";return}
+  resume=f;$("fileName").textContent=f.name;$("toDomain").disabled=false;
+}
+$("file").addEventListener("change",e=>takeFile(e.target.files[0]));
+["dragover","dragenter"].forEach(ev=>$("drop").addEventListener(ev,e=>{e.preventDefault();$("drop").classList.add("over")}));
+["dragleave","drop"].forEach(ev=>$("drop").addEventListener(ev,e=>{e.preventDefault();$("drop").classList.remove("over")}));
+$("drop").addEventListener("drop",e=>takeFile(e.dataTransfer.files[0]));
+$("toDomain").onclick=()=>show(1);
+$("backUpload").onclick=()=>show(0);
+
+/* Domain & Suggested Focus with Plus (+) */
+const customDomainInput=$("customDomain");
+
+function setChosenDomain(selectedName){
+  domain=selectedName.trim();
+  customDomainInput.value=domain;
+  document.querySelectorAll(".dom").forEach(x=>{
+    x.setAttribute("aria-pressed",String(x.getAttribute("data-name").toLowerCase()===domain.toLowerCase()));
+  });
+  $("start").disabled=!domain;
+}
+
+Object.keys(DOMAINS).forEach(name=>{
+  const b=document.createElement("div");
+  b.className="dom";
+  b.setAttribute("data-name",name);
+  b.setAttribute("aria-pressed","false");
+  b.setAttribute("role","button");
+  b.setAttribute("tabindex","0");
+  b.innerHTML=`
+    <div class="dom-info">
+      <b>${name}</b>
+      <span>${DOMAINS[name].d}</span>
+    </div>
+    <button class="plus-btn" type="button" aria-label="Add ${name}" title="Choose ${name}">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+    </button>
+  `;
+  const activate=()=>setChosenDomain(name);
+  b.onclick=activate;
+  b.onkeydown=e=>{if(e.key==="Enter"||e.key===" ")activate()};
+  $("doms").appendChild(b);
+});
+
+customDomainInput.addEventListener("input",e=>{
+  domain=e.target.value.trim();
+  document.querySelectorAll(".dom").forEach(x=>{
+    x.setAttribute("aria-pressed",String(x.getAttribute("data-name").toLowerCase()===domain.toLowerCase()));
+  });
+  $("start").disabled=!domain;
+});
+
+/* Level and count */
+const LEVELS=["Beginner","Intermediate","Advanced"];
+const HINT={Beginner:"Fundamentals and definitions.",Intermediate:"Applied concepts and typical interview questions.",Advanced:"Design, trade-offs and deep debugging."};
+function seg(id,items,get,set){
+  const box=$(id);
+  items.forEach(v=>{
+    const b=document.createElement("button");
+    b.className="chip";b.type="button";b.textContent=v;
+    b.setAttribute("aria-pressed",String(get()===v));
+    b.onclick=()=>{set(v);box.querySelectorAll(".chip").forEach(x=>x.setAttribute("aria-pressed",String(x===b)))};
+    box.appendChild(b);
+  });
+}
+seg("lvSeg",LEVELS,()=>level,v=>{level=v;$("lvHint").textContent=HINT[v]});
+seg("cnSeg",[3,5,8,10],()=>count,v=>{count=v});
+seg("tmSeg",["45s","60s","90s","120s"],()=>questionTime+"s",v=>{questionTime=parseInt(v,10);$("clock").textContent=questionTime});
+$("lvHint").textContent=HINT[level];
+
+/* Backend API Integration: Request personalized interview questions */
+async function getQuestions(resumeFile, domainName, lvl, n){
+  const formData = new FormData();
+  formData.append("resume", resumeFile);
+  formData.append("domain", domainName);
+  formData.append("level", lvl);
+  formData.append("count", n);
+
+  const res = await fetch("/api/questions", {
+    method: "POST",
+    body: formData
+  });
+
+  const data = await res.json().catch(() => ({}));
+
+  if (!res.ok) {
+    throw new Error(data.error || "Failed to generate interview questions from the server.");
+  }
+
+  if (!Array.isArray(data.questions) || data.questions.length === 0) {
+    throw new Error("Invalid response format received from AI interview coach.");
+  }
+
+  return data.questions;
+}
+
+/* Interview */
+$("start").onclick=async()=>{
+  const startBtn=$("start");
+  const origText=startBtn.textContent;
+  const domErr=$("domErr");
+  domErr.textContent="";
+
+  if(!domain){
+    domErr.textContent="Please specify your target role or choose one above.";
+    return;
+  }
+
+  try {
+    startBtn.disabled=true;
+    startBtn.innerHTML='<span class="spinner"></span>Preparing your questions...';
+    qs=await getQuestions(resume,domain,level,count);
+    idx=0;results=[];show(2);ask();
+  } catch(err) {
+    domErr.textContent=err.message||"Failed to generate questions. Please try again.";
+  } finally {
+    startBtn.disabled=false;
+    startBtn.textContent=origText;
+  }
+};
+
+function ask(){
+  $("qcount").textContent="Question "+(idx+1)+" of "+qs.length;
+  $("qtext").textContent=qs[idx];
+  $("answer").value="";$("answer").focus({preventScroll:true});
+  $("next").textContent=idx===qs.length-1?"Finish interview":"Save and continue";
+  left=questionTime;draw();clearInterval(tick);
+  tick=setInterval(()=>{left--;draw();if(left<=0)finish(false)},1000);
+}
+function draw(){
+  $("clock").textContent=left;
+  $("ring").style.strokeDashoffset=CIRC*(1-left/questionTime);
+  $("timer").classList.toggle("low",left<=Math.min(15,Math.round(questionTime*0.2)));
+}
+function finish(skipped){
+  clearInterval(tick);
+  const text=$("answer").value.trim();
+  results.push({q:qs[idx],a:skipped?"":text,used:questionTime-left,skipped:skipped||!text});
+  idx++;
+  idx<qs.length?ask():summary();
+}
+$("next").onclick=()=>finish(false);
+$("skip").onclick=()=>finish(true);
+
+function escapeHtml(str){
+  if(!str)return"";
+  return String(str)
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#039;");
+}
+
+/* Summary with AI Feedback */
+async function summary(){
+  show(3);
+  const done=results.filter(r=>!r.skipped);
+  const avgTime=done.length?Math.round(done.reduce((s,r)=>s+r.used,0)/done.length):0;
+
+  $("stats").innerHTML=
+    '<div class="stat"><b id="statScore"><span class="spinner-light"></span></b><span>Overall score</span></div>'+
+    '<div class="stat"><b>'+done.length+"/"+results.length+"</b><span>Answered</span></div>"+
+    '<div class="stat"><b>'+avgTime+"s</b><span>Avg time</span></div>"+
+    '<div class="stat"><b>'+domain.slice(0,12)+"</b><span>Domain</span></div>";
+
+  $("log").innerHTML='<div style="padding:28px 0;text-align:center;color:var(--mute);"><span class="spinner-light"></span> Analyzing your responses and generating coach feedback...</div>';
+
+  const feedbacks=[];
+  for(let i=0;i<results.length;i++){
+    const r=results[i];
+    try {
+      const res=await fetch("/api/feedback",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({
+          question:r.q,
+          answer:r.a,
+          domain:domain,
+          level:level
+        })
+      });
+      const fb=await res.json();
+      feedbacks.push(fb);
+    } catch(err) {
+      feedbacks.push({
+        score:r.skipped?0:5,
+        strengths:"Unable to load evaluation.",
+        improvements:"Network or service error occurred during feedback analysis.",
+        sampleAnswer:"N/A"
+      });
+    }
+  }
+
+  // Calculate overall score
+  const totalScore=feedbacks.reduce((acc,f)=>acc+(Number(f.score)||0),0);
+  const avgScore=(totalScore/feedbacks.length).toFixed(1);
+
+  const scoreElem=$("statScore");
+  if(scoreElem){
+    scoreElem.innerHTML=avgScore+' <span style="font-size:16px;font-weight:500;color:var(--mute)">/10</span>';
+  }
+
+  $("log").innerHTML=results.map((r,i)=>{
+    const fb=feedbacks[i];
+    const scoreVal=fb.score!==undefined?fb.score:(r.skipped?0:5);
+    const scoreClass=scoreVal===0?"fb-score zero":"fb-score";
+    const answerHtml=r.skipped
+      ? '<div class="fb-ans" style="border-left-color:var(--ember);color:var(--mute);">Skipped question (no response recorded)</div>'
+      : '<div class="fb-ans">" '+escapeHtml(r.a)+' "</div>';
+
+    return `
+      <div class="fb-card">
+        <div class="fb-top">
+          <div class="fb-q">Q${i+1}. ${escapeHtml(r.q)}</div>
+          <span class="${scoreClass}">Score: ${scoreVal} / 10</span>
+        </div>
+        <div class="fb-meta">${r.skipped?"Skipped":"Answered in "+r.used+"s"}</div>
+        ${answerHtml}
+        <div class="fb-sec">
+          <strong>Strengths</strong>
+          <div>${escapeHtml(fb.strengths||"None noted.")}</div>
+        </div>
+        <div class="fb-sec">
+          <strong>Areas to Improve</strong>
+          <div>${escapeHtml(fb.improvements||"None noted.")}</div>
+        </div>
+        <div class="fb-sec fb-sample">
+          <strong>Sample Answer</strong>
+          <div>${escapeHtml(fb.sampleAnswer||"")}</div>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+$("again").onclick=()=>{
+  resume=null;domain="";
+  customDomainInput.value="";
+  $("file").value="";$("fileName").textContent="";
+  $("toDomain").disabled=true;$("start").disabled=true;
+  $("domErr").textContent="";
+  document.querySelectorAll(".dom").forEach(x=>x.setAttribute("aria-pressed","false"));
+  show(0);
+};
+</script>
+</body>
+</html>
